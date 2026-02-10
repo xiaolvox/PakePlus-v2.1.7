@@ -1,77 +1,496 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>彗星尾巴形成模拟实验 | 科学探究</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .comet-tail {
+                position: absolute;
+                background: linear-gradient(90deg, 
+                    rgba(255, 255, 255, 0.8) 0%, 
+                    rgba(255, 255, 255, 0.4) 50%, 
+                    rgba(255, 255, 255, 0) 100%);
+                border-radius: 50%;
+                transform-origin: right center;
+                transition: all 1s ease;
+            }
+            .solar-wind-particle {
+                position: absolute;
+                background-color: rgba(255, 200, 0, 0.6);
+                border-radius: 50%;
+                pointer-events: none;
+                animation: wind-particle linear;
+            }
+            @keyframes wind-particle {
+                0% {
+                    transform: translate(0, 0);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(var(--tx), var(--ty));
+                    opacity: 0;
+                }
+            }
+            .orbit-path {
+                position: absolute;
+                border: 1px dashed rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="bg-slate-800/90 backdrop-blur-sm py-4 px-6 shadow-lg">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-2xl font-bold text-amber-300 mb-3 md:mb-0">
+                <i class="fas fa-star mr-2"></i>彗星尾巴形成模拟实验
+            </h1>
+            <div class="flex space-x-4">
+                <button id="btn-play" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-play mr-1"></i>开始模拟
+                </button>
+                <button id="btn-reset" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-redo mr-1"></i>重置
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
-            <form class="row" id="greet-form">
-                <input id="inputValue" placeholder="Enter a something..." />
-            </form>
-            <div class="resultBox">
-                <span>result: </span>
-                <span id="result"></span>
+    <!-- 主内容区 -->
+    <main class="flex-1 container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+        <!-- 控制面板 -->
+        <section class="lg:w-1/4 bg-slate-800 rounded-xl p-6 shadow-xl">
+            <h2 class="text-xl font-semibold mb-6 text-amber-200 border-b border-slate-700 pb-3">
+                <i class="fas fa-sliders-h mr-2"></i>参数调节
+            </h2>
+            
+            <!-- 太阳风强度调节 -->
+            <div class="mb-8">
+                <div class="flex justify-between mb-2">
+                    <label for="wind-strength" class="text-lg">太阳风强度</label>
+                    <span id="wind-strength-value" class="text-amber-300 font-medium">50%</span>
+                </div>
+                <input 
+                    type="range" 
+                    id="wind-strength" 
+                    min="0" 
+                    max="100" 
+                    value="50"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                >
+                <p class="text-sm text-slate-400 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>太阳风越强，彗尾越长且越明显
+                </p>
             </div>
-            <div class="invokeBox">
-                <button id="openUrl" type="button">open_url_browser</button>
-                <button id="openUrlNew" type="button">open_url_new</button>
-                <button id="runCommand" type="button">run_command</button>
-                <button id="downloadFile" type="button">download_file</button>
-                <button id="getExeDir" type="button">get_exe_dir</button>
-                <button id="getEnvVar" type="button">get_env_var</button>
-                <button id="findPort" type="button">find_port</button>
-                <button id="openAskDialog" type="button">openAskDialog</button>
-                <button id="openConfirmDialog" type="button">
-                    openConfirmDialog
-                </button>
-                <button id="openMessageDialog" type="button">
-                    openMessageDialog
-                </button>
-                <button id="openFileDialog" type="button">
-                    openFileDialog
-                </button>
-                <button id="openDirDialog" type="button">openDirDialog</button>
-                <button id="openSaveDialog" type="button">
-                    openSaveDialog
-                </button>
-                <button id="videoTest" type="button">VideoTest</button>
-                <!-- file api -->
-                <button id="createFile" type="button">createFile</button>
-                <button id="writeTextFile" type="button">writeTextFile</button>
-                <button id="writeBinaryFile" type="button">
-                    writeBinaryFile
-                </button>
-                <button id="readTextFile" type="button">readTextFile</button>
-                <button id="readBinaryFile" type="button">
-                    readBinaryFile
-                </button>
-                <button id="readFile" type="button">readFile</button>
-                <button id="openFile" type="button">openFile</button>
-                <button id="readDir" type="button">readDir</button>
-                <button id="mkdir" type="button">mkdir</button>
-                <button id="watch" type="button">watch</button>
-                <button id="watchImmediate" type="button">
-                    watchImmediate
-                </button>
-                <button id="size" type="button">size</button>
-                <button id="exists" type="button">exists</button>
-                <button id="remove" type="button">remove</button>
-                <button id="copyFile" type="button">copyFile</button>
-                <button id="rename" type="button">rename</button>
+
+            <!-- 彗星与太阳距离调节 -->
+            <div class="mb-8">
+                <div class="flex justify-between mb-2">
+                    <label for="comet-distance" class="text-lg">彗星-太阳距离</label>
+                    <span id="comet-distance-value" class="text-amber-300 font-medium">中等</span>
+                </div>
+                <input 
+                    type="range" 
+                    id="comet-distance" 
+                    min="1" 
+                    max="3" 
+                    value="2"
+                    class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                >
+                <div class="flex justify-between text-xs text-slate-400 mt-1">
+                    <span>近 (1 AU)</span>
+                    <span>中 (2 AU)</span>
+                    <span>远 (3 AU)</span>
+                </div>
+                <p class="text-sm text-slate-400 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>距离越近，彗尾越亮且活动越剧烈
+                </p>
             </div>
-            <video
-                src="https://gh-proxy.org/https://github.com/worker500/FileHub/blob/main/root/IronMan.mp4"
-                controls
-                width="100%"
-                height="100%"
-                class="video"
-            ></video>
-        </main>
-    </body>
+
+            <!-- 彗星成分调节 -->
+            <div class="mb-8">
+                <div class="flex justify-between mb-2">
+                    <label for="comet-composition" class="text-lg">彗星冰质成分</label>
+                    <span id="comet-composition-value" class="text-amber-300 font-medium">混合</span>
+                </div>
+                <select 
+                    id="comet-composition" 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="water">主要为水冰</option>
+                    <option value="mixed" selected>混合冰质（水+甲烷+氨）</option>
+                    <option value="organic">富含有机物</option>
+                </select>
+                <p class="text-sm text-slate-400 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i>不同成分会影响彗尾的颜色和密度
+                </p>
+            </div>
+
+            <!-- 原理说明 -->
+            <div class="mt-8 bg-slate-700/50 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-amber-200 mb-3">
+                    <i class="fas fa-book mr-2"></i>彗尾形成原理
+                </h3>
+                <ul class="text-sm text-slate-300 space-y-2">
+                    <li><i class="fas fa-circle text-xs text-blue-400 mr-2"></i>彗尾由太阳风（带电粒子流）和太阳辐射压推动彗星物质形成</li>
+                    <li><i class="fas fa-circle text-xs text-blue-400 mr-2"></i>彗尾永远背离太阳，距离太阳越近，彗尾越长</li>
+                    <li><i class="fas fa-circle text-xs text-blue-400 mr-2"></i>彗尾主要分为离子尾（蓝色）和尘埃尾（黄色）</li>
+                    <li><i class="fas fa-circle text-xs text-blue-400 mr-2"></i>太阳风强度决定彗尾的延伸长度和粒子密度</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 模拟展示区 -->
+        <section class="lg:w-3/4 bg-slate-800 rounded-xl p-4 shadow-xl relative overflow-hidden" style="min-height: 600px;">
+            <div id="simulation-container" class="w-full h-full relative">
+                <!-- 太阳 -->
+                <div id="sun" class="absolute top-1/2 left-1/2 w-24 h-24 bg-amber-400 rounded-full shadow-[0_0_40px_rgba(251,191,36,0.8)] transform -translate-x-1/2 -translate-y-1/2 z-10"></div>
+                
+                <!-- 彗星轨道 -->
+                <div id="orbit" class="orbit-path w-[70%] h-[70%] top-1/2 left-1/2 z-5"></div>
+                
+                <!-- 彗星本体 -->
+                <div id="comet" class="absolute w-8 h-8 bg-slate-300 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.8)] z-20">
+                    <!-- 彗核 -->
+                    <div class="w-full h-full bg-slate-400 rounded-full relative overflow-hidden">
+                        <div class="absolute w-4 h-4 bg-slate-500 rounded-full top-1 left-1"></div>
+                        <div class="absolute w-3 h-3 bg-slate-500 rounded-full bottom-1 right-2"></div>
+                    </div>
+                    <!-- 彗发 -->
+                    <div class="absolute -left-4 top-1/2 w-12 h-8 bg-white/30 rounded-full transform -translate-y-1/2 blur-sm"></div>
+                    <!-- 彗尾容器 -->
+                    <div id="tail-container" class="absolute right-0 top-1/2 transform -translate-y-1/2">
+                        <!-- 彗尾会通过JS动态生成 -->
+                    </div>
+                </div>
+                
+                <!-- 太阳风粒子容器 -->
+                <div id="wind-particles" class="absolute inset-0 pointer-events-none z-15"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-slate-800 py-4 px-6 text-center text-slate-400 text-sm">
+        <p>彗星尾巴形成模拟实验 | 科学探究工具 © 2026</p>
+    </footer>
+
+    <script>
+        // 全局变量
+        let simulationRunning = false;
+        let animationFrameId;
+        let cometAngle = 0;
+        let cometSpeed = 0.01;
+        
+        // DOM元素
+        const sun = document.getElementById('sun');
+        const comet = document.getElementById('comet');
+        const tailContainer = document.getElementById('tail-container');
+        const windParticles = document.getElementById('wind-particles');
+        const orbit = document.getElementById('orbit');
+        
+        // 控制元素
+        const windStrengthSlider = document.getElementById('wind-strength');
+        const windStrengthValue = document.getElementById('wind-strength-value');
+        const cometDistanceSlider = document.getElementById('comet-distance');
+        const cometDistanceValue = document.getElementById('comet-distance-value');
+        const cometCompositionSelect = document.getElementById('comet-composition');
+        const cometCompositionValue = document.getElementById('comet-composition-value');
+        const btnPlay = document.getElementById('btn-play');
+        const btnReset = document.getElementById('btn-reset');
+        
+        // 初始化
+        function initSimulation() {
+            // 设置初始参数显示
+            updateParameterDisplay();
+            
+            // 初始化彗星位置
+            updateCometPosition();
+            
+            // 生成初始彗尾
+            updateCometTail();
+            
+            // 绑定事件监听
+            bindEventListeners();
+        }
+        
+        // 绑定事件监听
+        function bindEventListeners() {
+            // 太阳风强度调节
+            windStrengthSlider.addEventListener('input', updateParameterDisplay);
+            
+            // 彗星距离调节
+            cometDistanceSlider.addEventListener('input', function() {
+                updateParameterDisplay();
+                updateCometPosition();
+                updateOrbitSize();
+            });
+            
+            // 彗星成分调节
+            cometCompositionSelect.addEventListener('change', updateParameterDisplay);
+            
+            // 播放/暂停按钮
+            btnPlay.addEventListener('click', toggleSimulation);
+            
+            // 重置按钮
+            btnReset.addEventListener('click', resetSimulation);
+        }
+        
+        // 更新参数显示
+        function updateParameterDisplay() {
+            // 更新太阳风强度显示
+            const windStrength = windStrengthSlider.value;
+            windStrengthValue.textContent = `${windStrength}%`;
+            
+            // 更新彗星距离显示
+            const distanceValue = cometDistanceSlider.value;
+            const distanceLabels = {
+                '1': '近',
+                '2': '中等',
+                '3': '远'
+            };
+            cometDistanceValue.textContent = distanceLabels[distanceValue];
+            
+            // 更新彗星成分显示
+            const compositionValue = cometCompositionSelect.value;
+            const compositionLabels = {
+                'water': '水冰',
+                'mixed': '混合',
+                'organic': '有机物'
+            };
+            cometCompositionValue.textContent = compositionLabels[compositionValue];
+        }
+        
+        // 更新彗星位置
+        function updateCometPosition() {
+            const distanceScale = cometDistanceSlider.value;
+            const orbitRadius = 150 * distanceScale; // 基础半径 * 距离系数
+            
+            // 计算彗星的坐标（圆形轨道）
+            const cometX = sun.offsetLeft + sun.offsetWidth/2 + Math.cos(cometAngle) * orbitRadius;
+            const cometY = sun.offsetTop + sun.offsetHeight/2 + Math.sin(cometAngle) * orbitRadius;
+            
+            // 设置彗星位置
+            comet.style.left = `${cometX - comet.offsetWidth/2}px`;
+            comet.style.top = `${cometY - comet.offsetHeight/2}px`;
+            
+            // 更新彗尾方向（始终背离太阳）
+            updateTailDirection(cometX, cometY);
+        }
+        
+        // 更新轨道大小
+        function updateOrbitSize() {
+            const distanceScale = cometDistanceSlider.value;
+            const orbitSize = 70 * distanceScale; // 基础大小 * 距离系数
+            orbit.style.width = `${orbitSize}%`;
+            orbit.style.height = `${orbitSize}%`;
+        }
+        
+        // 更新彗尾方向
+        function updateTailDirection(cometX, cometY) {
+            const sunX = sun.offsetLeft + sun.offsetWidth/2;
+            const sunY = sun.offsetTop + sun.offsetHeight/2;
+            
+            // 计算彗星到太阳的向量
+            const dx = cometX - sunX;
+            const dy = cometY - sunY;
+            
+            // 计算角度
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            // 设置彗尾容器的旋转角度（背离太阳）
+            tailContainer.style.transform = `translateY(-50%) rotate(${angle}deg)`;
+        }
+        
+        // 更新彗尾样式
+        function updateCometTail() {
+            // 清空现有彗尾
+            tailContainer.innerHTML = '';
+            
+            // 获取参数
+            const windStrength = parseInt(windStrengthSlider.value);
+            const distanceScale = parseInt(cometDistanceSlider.value);
+            const composition = cometCompositionSelect.value;
+            
+            // 计算彗尾参数
+            const baseTailLength = 100;
+            const tailLength = baseTailLength * (windStrength / 50) * (4 - distanceScale);
+            const tailThickness = 10 + (windStrength / 10) - (distanceScale * 2);
+            
+            // 设置彗尾颜色（根据成分）
+            let tailColor = '';
+            switch(composition) {
+                case 'water':
+                    tailColor = 'rgba(100, 181, 246, 0.7)'; // 蓝色（离子尾）
+                    break;
+                case 'mixed':
+                    tailColor = 'rgba(255, 255, 255, 0.8)'; // 白色混合
+                    break;
+                case 'organic':
+                    tailColor = 'rgba(250, 204, 21, 0.7)'; // 黄色（尘埃尾）
+                    break;
+            }
+            
+            // 创建主彗尾
+            const tail = document.createElement('div');
+            tail.className = 'comet-tail';
+            tail.style.width = `${tailLength}px`;
+            tail.style.height = `${tailThickness}px`;
+            tail.style.background = `linear-gradient(90deg, 
+                ${tailColor} 0%, 
+                ${tailColor.replace('0.7)', '0.4)').replace('0.8)', '0.5)')} 50%, 
+                rgba(255, 255, 255, 0) 100%)`;
+            
+            tailContainer.appendChild(tail);
+            
+            // 创建次级彗尾（增强视觉效果）
+            if (windStrength > 30) {
+                const subTail1 = document.createElement('div');
+                subTail1.className = 'comet-tail';
+                subTail1.style.width = `${tailLength * 0.8}px`;
+                subTail1.style.height = `${tailThickness * 0.6}px`;
+                subTail1.style.top = '-10px';
+                subTail1.style.background = `linear-gradient(90deg, 
+                    ${tailColor.replace('0.7)', '0.5)').replace('0.8)', '0.6)')} 0%, 
+                    rgba(255, 255, 255, 0) 100%)`;
+                
+                const subTail2 = document.createElement('div');
+                subTail2.className = 'comet-tail';
+                subTail2.style.width = `${tailLength * 0.8}px`;
+                subTail2.style.height = `${tailThickness * 0.6}px`;
+                subTail2.style.top = '10px';
+                subTail2.style.background = `linear-gradient(90deg, 
+                    ${tailColor.replace('0.7)', '0.5)').replace('0.8)', '0.6)')} 0%, 
+                    rgba(255, 255, 255, 0) 100%)`;
+                
+                tailContainer.appendChild(subTail1);
+                tailContainer.appendChild(subTail2);
+            }
+        }
+        
+        // 创建太阳风粒子
+        function createWindParticle() {
+            const windStrength = parseInt(windStrengthSlider.value);
+            if (windStrength < 10) return;
+            
+            // 粒子数量基于太阳风强度
+            const particleCount = Math.floor(windStrength / 20);
+            
+            for (let i = 0; i < particleCount; i++) {
+                // 创建粒子
+                const particle = document.createElement('div');
+                particle.className = 'solar-wind-particle';
+                
+                // 随机大小
+                const size = Math.random() * 3 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // 从太阳表面随机位置生成
+                const sunX = sun.offsetLeft + sun.offsetWidth/2;
+                const sunY = sun.offsetTop + sun.offsetHeight/2;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = sun.offsetWidth/2;
+                
+                particle.style.left = `${sunX + Math.cos(angle) * distance}px`;
+                particle.style.top = `${sunY + Math.sin(angle) * distance}px`;
+                
+                // 计算粒子运动方向（背离太阳）
+                const tx = Math.cos(angle) * (500 + Math.random() * 300);
+                const ty = Math.sin(angle) * (500 + Math.random() * 300);
+                
+                // 设置动画参数
+                const duration = 2 + (100 - windStrength) / 20; // 风速越快，粒子运动越快
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                particle.style.animationDuration = `${duration}s`;
+                
+                // 添加到页面
+                windParticles.appendChild(particle);
+                
+                // 动画结束后移除粒子
+                setTimeout(() => {
+                    particle.remove();
+                }, duration * 1000);
+            }
+        }
+        
+        // 模拟主循环
+        function simulationLoop() {
+            if (!simulationRunning) return;
+            
+            // 更新彗星角度（让彗星沿轨道运动）
+            cometAngle += cometSpeed;
+            if (cometAngle > Math.PI * 2) {
+                cometAngle = 0;
+            }
+            
+            // 更新彗星位置
+            updateCometPosition();
+            
+            // 定期创建太阳风粒子
+            if (Math.random() < 0.2) {
+                createWindParticle();
+            }
+            
+            // 更新彗尾（响应参数变化）
+            updateCometTail();
+            
+            // 继续循环
+            animationFrameId = requestAnimationFrame(simulationLoop);
+        }
+        
+        // 切换模拟状态（播放/暂停）
+        function toggleSimulation() {
+            simulationRunning = !simulationRunning;
+            
+            if (simulationRunning) {
+                btnPlay.innerHTML = '<i class="fas fa-pause mr-1"></i>暂停模拟';
+                simulationLoop();
+            } else {
+                btnPlay.innerHTML = '<i class="fas fa-play mr-1"></i>开始模拟';
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+        
+        // 重置模拟
+        function resetSimulation() {
+            // 停止模拟
+            simulationRunning = false;
+            btnPlay.innerHTML = '<i class="fas fa-play mr-1"></i>开始模拟';
+            cancelAnimationFrame(animationFrameId);
+            
+            // 重置参数
+            windStrengthSlider.value = 50;
+            cometDistanceSlider.value = 2;
+            cometCompositionSelect.value = 'mixed';
+            updateParameterDisplay();
+            
+            // 重置彗星位置
+            cometAngle = 0;
+            updateCometPosition();
+            updateOrbitSize();
+            
+            // 清空粒子
+            windParticles.innerHTML = '';
+            
+            // 重置彗尾
+            updateCometTail();
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initSimulation);
+    </script>
+</body>
 </html>
